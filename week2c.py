@@ -1,0 +1,43 @@
+import heapq
+
+def fuel_blend_astar(volume, octA, octB, target_oct):
+    def heuristic(a, b):
+        if a + b == 0:
+            return target_oct
+        return abs(target_oct - (a*octA + b*octB)/(a+b))
+
+    pq = [(heuristic(0,0), 0, 0, 0, [(0,0)])]
+    visited = set()
+
+    while pq:
+        f, g, a, b, path = heapq.heappop(pq)
+
+        if (a, b) in visited:
+            continue
+        visited.add((a, b))
+
+        if a + b == volume and abs((a*octA + b*octB)/volume - target_oct) < 1e-6:
+            return path
+
+        moves = []
+        if a + b < volume:
+            moves.append((a+1, b))
+            moves.append((a, b+1))
+
+        for na, nb in moves:
+            if (na, nb) not in visited:
+                g_new = g + 1
+                f_new = g_new + heuristic(na, nb)
+                heapq.heappush(pq, (f_new, g_new, na, nb, path + [(na, nb)]))
+
+    return None
+
+solution = fuel_blend_astar(4, 90, 70, 85)
+
+if solution:
+    for step in solution:
+        a, b = step
+        mix_oct = (a*90 + b*70)/(a+b) if (a+b) > 0 else 0
+        print(f"A={a}, B={b}, Octane={mix_oct:.2f}")
+else:
+    print("No solution found.")
